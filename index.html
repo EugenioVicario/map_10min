@@ -6,10 +6,8 @@
     <title>Weighted Mean Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 1000px; width: 100%; margin-top: 10px; }
+        #map { height: 500px; width: 100%; margin-top: 10px; }
         #controls { padding: 10px; }
-        .legend { background: white; border: 1px solid #ccc; padding: 10px; }
-        .legend i { width: 20px; height: 20px; float: left; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -26,31 +24,22 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-scale-chromatic@2.1.0/dist/d3-scale-chromatic.min.js"></script>
     <script>
-        var map = L.map('map', {
-            center: [0, 0], // Default center
-            zoom: 2, // Default zoom level
-        });
+        var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
 
-        // Mapbox tile layer (water-focused)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1,
-        }).addTo(map);
+        // Remove the tile layer for background map, leaving only polygons visible
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
 
-        // Function to generate color based on the weighted mean value using a basic color scale
+        // Function to generate color based on the weighted mean value
         function getColor(value, min, max) {
-            // Normalize the value to be between 0 and 1
-            let normalized = (value - min) / (max - min);
-            // Use the cool color scale instead of Viridis
-            return d3.scaleSequential(d3.interpolateCool).domain([0, 1])(normalized);
+            let normalized = (value - min) / (max - min); // Normalize to range [0,1]
+            return normalized > 0.8 ? '#800026' :
+                   normalized > 0.6 ? '#BD0026' :
+                   normalized > 0.4 ? '#E31A1C' :
+                   normalized > 0.2 ? '#FC4E2A' : '#FFEDA0';
         }
 
         // Function to update the map with new weights
@@ -106,7 +95,7 @@
                         <b>Health:</b> ${feature.properties.Health}<br>
                         <b>Leisure:</b> ${feature.properties.Leisure}<br>
                         <b>Food Retail:</b> ${feature.properties.Food_Retai}<br>
-                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br> <!-- Updated label -->
+                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br>
                         <b>Parks:</b> ${feature.properties.Parks}<br>
                         <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
                     `);
@@ -116,33 +105,6 @@
             // Center the map on the centroid of the dataset
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
-
-            // Add a legend for the color scale
-            addLegend(minWeightedMean, maxWeightedMean);
-        }
-
-        // Add a color legend
-        function addLegend(min, max) {
-            var legend = L.control({ position: 'bottomright' });
-
-            legend.onAdd = function () {
-                var div = L.DomUtil.create('div', 'info legend');
-                var grades = [min, max];
-                var labels = [];
-
-                // Loop through the grades and generate a label with a colored square
-                for (var i = 0; i < grades.length; i++) {
-                    labels.push(
-                        '<i style="background:' + getColor(grades[i], min, max) + '"></i> ' +
-                        grades[i].toFixed(2)
-                    );
-                }
-
-                div.innerHTML = labels.join('<br>');
-                return div;
-            };
-
-            legend.addTo(map);
         }
 
         // Load the GeoJSON data
@@ -155,4 +117,5 @@
     </script>
 </body>
 </html>
+
 
