@@ -6,23 +6,47 @@
     <title>Weighted Mean Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 800px; width: 100%; margin-top: 10px; }
+        /* Default map size for PC */
+        #map { 
+            height: 800px; 
+            width: 100%; 
+            margin-top: 10px; 
+        }
+
         #controls { padding: 10px; }
-        .legend { background: white; padding: 10px; line-height: 18px; border-radius: 5px; }
-        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 1; }
-        .custom-tooltip { background: white; border-radius: 4px; padding: 5px; font-weight: bold; }
+
+        .legend { 
+            background: white; 
+            padding: 10px; 
+            line-height: 18px; 
+            border-radius: 5px; 
+        }
+
+        .legend i { 
+            width: 18px; 
+            height: 18px; 
+            float: left; 
+            margin-right: 8px; 
+            opacity: 1; 
+        }
+
+        .custom-tooltip { 
+            background: white; 
+            border-radius: 4px; 
+            padding: 5px; 
+            font-weight: bold; 
+        }
+
+        /* Responsive adjustments for mobile */
+        @media screen and (max-width: 768px) {
+            #map { 
+                height: 400px;  /* Smaller height for mobile */
+            }
+        }
     </style>
 </head>
 <body>
     <h2>Weighted Mean Map</h2>
-
-    <!-- Version Selection -->
-    <label>Select Version:
-        <select id="versionSelector" onchange="switchVersion()">
-            <option value="pc">PC Version</option>
-            <option value="mobile">Mobile Version</option>
-        </select>
-    </label>
 
     <div id="controls">
         <label>Weight for Education: <input type="number" id="weightEdu" value="0.5" min="0" max="1" step="0.01"></label>
@@ -38,39 +62,12 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([0, 0], 2);
+        var isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        var map = L.map('map').setView([0, 0], isMobile ? 4 : 2);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
 
         var geojsonData, geojsonLayer, legend;
-
-        // Auto-detect device type on page load
-        document.addEventListener("DOMContentLoaded", function () {
-            if (/Mobi|Android/i.test(navigator.userAgent)) {
-                document.getElementById("versionSelector").value = "mobile";
-                applyMobileVersion();
-            } else {
-                applyPCVersion();
-            }
-        });
-
-        function switchVersion() {
-            let version = document.getElementById("versionSelector").value;
-            if (version === "pc") {
-                applyPCVersion();
-            } else {
-                applyMobileVersion();
-            }
-        }
-
-        function applyPCVersion() {
-            document.getElementById("controls").style.display = "block"; // Show all controls
-            map.setView([0, 0], 2); // Standard zoom
-        }
-
-        function applyMobileVersion() {
-            document.getElementById("controls").style.display = "none"; // Hide controls for mobile
-            map.setView([0, 0], 4); // Zoom in for better mobile view
-        }
 
         function getColor(value, max) {
             let normalized = value;
