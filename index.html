@@ -96,30 +96,42 @@
                 },
                 onEachFeature: function(feature, layer) {
                     let weightedMean = (
-                    feature.properties.Education * weightEdu +
-                    feature.properties.Health * weightHealth +
-                    feature.properties.Leisure * weightLeisure +
-                    feature.properties.Food_Retai * weightFoodRetail +
-                    feature.properties.Primary_Se * weightPrimarySe +
-                    feature.properties.Parks * weightParks
-                ) / weightSum;
+                        feature.properties.Education * weightEdu +
+                        feature.properties.Health * weightHealth +
+                        feature.properties.Leisure * weightLeisure +
+                        feature.properties.Food_Retai * weightFoodRetail +
+                        feature.properties.Primary_Se * weightPrimarySe +
+                        feature.properties.Parks * weightParks
+                    ) / weightSum;
 
-                // Add a click event to display the weighted mean as a label
-                layer.on('click', function(e) {
-                    // Remove any existing tooltips
-                    map.eachLayer(function(l) {
-                        if (l.getTooltip()) {
-                            l.unbindTooltip();
+                    // Add a click event to display the weighted mean as a label
+                    layer.on('click', function(e) {
+                        // Remove any existing tooltips
+                        map.eachLayer(function(l) {
+                            if (l.getTooltip()) {
+                                l.unbindTooltip();
+                            }
+                        });
+
+                        // Bind a new tooltip and open it
+                        layer.bindTooltip(
+                            `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`, 
+                            { permanent: true, direction: "center", className: "custom-tooltip" }
+                        ).openTooltip();
+
+                        // Prevent the map click event from closing this tooltip immediately
+                        e.originalEvent.stopPropagation();
+                    });
+                }
+
+                // Close the tooltip when clicking on the map background
+                map.on('click', function() {
+                    map.eachLayer(function(layer) {
+                        if (layer.getTooltip()) {
+                            layer.unbindTooltip();
                         }
                     });
-
-                    // Bind a new tooltip and open it
-                    layer.bindTooltip(
-            `            <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`, 
-                        { permanent: true, direction: "center", className: "custom-tooltip" }
-                    ).openTooltip();
                 });
-            }
             }).addTo(map);
 
             // Center the map on the centroid of the dataset
