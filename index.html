@@ -15,6 +15,10 @@
     <div id="controls">
         <label>Weight for Education: <input type="number" id="weightEdu" value="1" step="0.1"></label>
         <label>Weight for Health: <input type="number" id="weightHealth" value="1" step="0.1"></label>
+        <label>Weight for Leisure: <input type="number" id="weightLeisure" value="1" step="0.1"></label>
+        <label>Weight for Food Retail: <input type="number" id="weightFoodRetail" value="1" step="0.1"></label>
+        <label>Weight for Primary Services: <input type="number" id="weightPrimarySe" value="1" step="0.1"></label>
+        <label>Weight for Parks: <input type="number" id="weightParks" value="1" step="0.1"></label>
         <button onclick="updateMap()">Apply Weights</button>
     </div>
     <div id="map"></div>
@@ -22,11 +26,14 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Remove the tile layer for background map, leaving only polygons visible
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
 
+        // Function to generate color based on the weighted mean value
         function getColor(value, min, max) {
             let normalized = (value - min) / (max - min); // Normalize to range [0,1]
             return normalized > 0.8 ? '#800026' :
@@ -35,20 +42,35 @@
                    normalized > 0.2 ? '#FC4E2A' : '#FFEDA0';
         }
 
+        // Function to update the map with new weights
         function updateMap() {
             let weightEdu = parseFloat(document.getElementById('weightEdu').value);
             let weightHealth = parseFloat(document.getElementById('weightHealth').value);
-            let weightSum = weightEdu + weightHealth;
+            let weightLeisure = parseFloat(document.getElementById('weightLeisure').value);
+            let weightFoodRetail = parseFloat(document.getElementById('weightFoodRetail').value);
+            let weightPrimarySe = parseFloat(document.getElementById('weightPrimarySe').value);
+            let weightParks = parseFloat(document.getElementById('weightParks').value);
+
+            let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
 
             if (geojsonLayer) map.removeLayer(geojsonLayer);
 
             // Compute min/max based on the new weight range
             let minWeightedMean = 0;
-            let maxWeightedMean = weightSum; // Max is now sum of weights
+            let maxWeightedMean = weightSum; // Max is now sum of all weights
 
             geojsonLayer = L.geoJSON(geojsonData, {
                 style: function(feature) {
-                    let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
+                    // Calculate the weighted mean using all fields
+                    let weightedMean = (
+                        feature.properties.Education * weightEdu +
+                        feature.properties.Health * weightHealth +
+                        feature.properties.Leisure * weightLeisure +
+                        feature.properties.Food_Retai * weightFoodRetail +
+                        feature.properties.Primary_Se * weightPrimarySe +
+                        feature.properties.Parks * weightParks
+                    ) / weightSum;
+
                     return { 
                         fillColor: getColor(weightedMean, minWeightedMean, maxWeightedMean),
                         fillOpacity: 0.7, 
@@ -57,11 +79,24 @@
                     };
                 },
                 onEachFeature: function(feature, layer) {
-                    let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
+                    // Calculate weighted mean for popup
+                    let weightedMean = (
+                        feature.properties.Education * weightEdu +
+                        feature.properties.Health * weightHealth +
+                        feature.properties.Leisure * weightLeisure +
+                        feature.properties.Food_Retai * weightFoodRetail +
+                        feature.properties.Primary_Se * weightPrimarySe +
+                        feature.properties.Parks * weightParks
+                    ) / weightSum;
+
                     layer.bindPopup(`
                         <b>Region:</b> ${feature.properties.name}<br>
-                        <b>Education Score:</b> ${feature.properties.Education}<br>
-                        <b>Health Score:</b> ${feature.properties.Health}<br>
+                        <b>Education:</b> ${feature.properties.Education}<br>
+                        <b>Health:</b> ${feature.properties.Health}<br>
+                        <b>Leisure:</b> ${feature.properties.Leisure}<br>
+                        <b>Food Retail:</b> ${feature.properties.Food_Retai}<br>
+                        <b>Primary School:</b> ${feature.properties.Primary_Se}<br>
+                        <b>Parks:</b> ${feature.properties.Parks}<br>
                         <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
                     `);
                 }
