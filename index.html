@@ -144,6 +144,15 @@
                 }
             }).addTo(map);
 
+            // Remove tooltip when clicking outside polygons
+            map.on('click', function(e) {
+                map.eachLayer(function(layer) {
+                    if (layer.getTooltip()) {
+                        layer.unbindTooltip();
+                    }
+                });
+            });
+
             // Automatically fit bounds to the geojson data
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);
