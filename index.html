@@ -117,11 +117,11 @@
             map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
 
             // Update the legend with the new weighted mean range
-            updateLegend(weightSum);
+            updateLegend(minWeightedMean, maxWeightedMean);
         }
 
         // Function to update the legend
-        function updateLegend(weightSum) {
+        function updateLegend(minWeightedMean, maxWeightedMean) {
             // Remove the previous legend before adding a new one
             if (map._controlCorners["topright"].firstChild) {
                 map.removeControl(map._controlCorners["topright"].firstChild);
@@ -131,14 +131,17 @@
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create('div', 'info legend');
-                var grades = [0, 0.2, 0.4, 0.6, 0.8, 1];
+                var grades = [minWeightedMean, minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.2, 
+                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.4, 
+                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.6, 
+                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.8, maxWeightedMean];
                 var labels = [];
 
                 // Generate the legend color boxes with values based on weighted sum
-                for (var i = 0; i < grades.length; i++) {
+                for (var i = 0; i < grades.length - 1; i++) {
                     labels.push(
-                        '<i style="background:' + getColor(grades[i] * weightSum, 0, weightSum) + '"></i> ' +
-                        (grades[i] * weightSum).toFixed(2) + (grades[i + 1] ? '&ndash;' + (grades[i + 1] * weightSum).toFixed(2) : '+')
+                        '<i style="background:' + getColor(grades[i], minWeightedMean, maxWeightedMean) + '"></i> ' +
+                        grades[i].toFixed(2) + '&ndash;' + grades[i + 1].toFixed(2)
                     );
                 }
 
