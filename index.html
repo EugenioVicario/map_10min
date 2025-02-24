@@ -64,7 +64,7 @@
     <script>
         var isMobile = /Mobi|Android/i.test(navigator.userAgent);
         var map = L.map('map', {
-            zoom: isMobile ? 4 : 3  // Adjust the zoom level for mobile/PC
+            zoom: isMobile ? 4 : 10  // Adjust the zoom level for mobile/PC
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
