@@ -63,7 +63,10 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        var map = L.map('map').setView([0, 0], isMobile ? 4 : 2);
+        var map = L.map('map', {
+            center: [0, 0], 
+            zoom: isMobile ? 4 : 3  // Slightly increased zoom for both versions
+        });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
 
@@ -92,6 +95,10 @@
             
             let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
             let maxWeightedMean = weightSum;
+
+            // Store current map view position and zoom level
+            var currentCenter = map.getCenter();
+            var currentZoom = map.getZoom();
 
             if (geojsonLayer) map.removeLayer(geojsonLayer);
 
@@ -150,6 +157,9 @@
 
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);
+
+            // Restore the previous center and zoom
+            map.setView(currentCenter, currentZoom);
 
             updateLegend(maxWeightedMean);
         }
