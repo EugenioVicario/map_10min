@@ -6,7 +6,7 @@
     <title>Weighted Mean Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 500px; width: 100%; margin-top: 10px; }
+        #map { height: 800px; width: 100%; margin-top: 10px; }
         #controls { padding: 10px; }
         .info.legend { 
             background: white;
@@ -30,7 +30,7 @@
         <label>Weight for Health: <input type="number" id="weightHealth" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Leisure: <input type="number" id="weightLeisure" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Food Retail: <input type="number" id="weightFoodRetail" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Primary School: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Weight for Primary Services: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Parks: <input type="number" id="weightParks" value="0.5" min="0" max="1" step="0.01"></label>
         <button onclick="updateMap()">Apply Weights</button>
     </div>
@@ -105,7 +105,7 @@
                         <b>Health:</b> ${feature.properties.Health}<br>
                         <b>Leisure:</b> ${feature.properties.Leisure}<br>
                         <b>Food Retail:</b> ${feature.properties.Food_Retai}<br>
-                        <b>Primary School:</b> ${feature.properties.Primary_Se}<br>
+                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br>
                         <b>Parks:</b> ${feature.properties.Parks}<br>
                         <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
                     `);
