@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=2.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weighted Mean Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 750px; width: 100%; margin-top: 10px; }
+        #map { height: 1000px; width: 100%; margin-top: 10px; }
         #controls { padding: 10px; }
         .legend { background: white; border: 1px solid #ccc; padding: 10px; }
         .legend i { width: 20px; height: 20px; float: left; margin-right: 5px; }
@@ -28,10 +28,13 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-scale-chromatic@2.1.0/dist/d3-scale-chromatic.min.js"></script>
     <script>
-        var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
+        var map = L.map('map', {
+            center: [0, 0], // Default center
+            zoom: 2, // Default zoom level
+        });
 
         // Remove the tile layer for background map, leaving only polygons visible
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
@@ -97,7 +100,7 @@
                         <b>Health:</b> ${feature.properties.Health}<br>
                         <b>Leisure:</b> ${feature.properties.Leisure}<br>
                         <b>Food Retail:</b> ${feature.properties.Food_Retai}<br>
-                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br>
+                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br> <!-- Updated label -->
                         <b>Parks:</b> ${feature.properties.Parks}<br>
                         <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
                     `);
