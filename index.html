@@ -40,11 +40,16 @@
         var legend;
 
         function getColor(value, max) {
-            let normalized = value ;
-            return normalized > 0.8 ? '#800026' :
-                   normalized > 0.6 ? '#BD0026' :
-                   normalized > 0.4 ? '#E31A1C' :
-                   normalized > 0.2 ? '#FC4E2A' : '#FFEDA0';
+            let normalized = value / max;
+            return normalized > 0.9 ? '#800026' :
+                   normalized > 0.8 ? '#BD0026' :
+                   normalized > 0.7 ? '#E31A1C' :
+                   normalized > 0.6 ? '#FC4E2A' :
+                   normalized > 0.5 ? '#FD8D3C' :
+                   normalized > 0.4 ? '#FEB24C' :
+                   normalized > 0.3 ? '#FED976' :
+                   normalized > 0.2 ? '#FFEDA0' :
+                   normalized > 0.1 ? '#FFFFCC' : '#FFFFFF';
         }
 
         function updateMap() {
@@ -130,13 +135,13 @@
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create("div", "info legend");
-                var grades = [0, 0.2 , 0.4 , 0.6 , 0.8 ];
-                var colors = ['#FFEDA0', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
+                var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+                var colors = ['#FFFFFF', '#FFFFCC', '#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
 
                 for (var i = 0; i < grades.length; i++) {
                     div.innerHTML +=
                         '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
-                        grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '+');
+                        grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '');
                 }
 
                 return div;
@@ -154,5 +159,4 @@
     </script>
 </body>
 </html>
-
 
