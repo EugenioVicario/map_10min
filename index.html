@@ -21,7 +21,7 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([25, 15], 3);
+        var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
@@ -49,7 +49,12 @@
             geojsonLayer = L.geoJSON(geojsonData, {
                 style: function(feature) {
                     let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
-                    return { fillColor: getColor(weightedMean, minWeightedMean, maxWeightedMean), fillOpacity: 0.7, color: "#000", weight: 1 };
+                    return { 
+                        fillColor: getColor(weightedMean, minWeightedMean, maxWeightedMean),
+                        fillOpacity: 0.7, 
+                        color: "transparent", // Border color is transparent
+                        weight: 0 
+                    };
                 },
                 onEachFeature: function(feature, layer) {
                     let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
@@ -61,10 +66,14 @@
                     `);
                 }
             }).addTo(map);
+
+            // Center the map on the centroid of the dataset
+            var bounds = geojsonLayer.getBounds();
+            map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
         }
 
         // Load the GeoJSON data
-        fetch('indicatore_02.geojson')
+        fetch('indicatore_02.geojson')  // Ensure the correct path to your GeoJSON file
             .then(response => response.json())
             .then(data => {
                 geojsonData = data;
