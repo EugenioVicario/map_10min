@@ -43,6 +43,11 @@
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
 
+        // Add a background tile layer (OpenStreetMap) with opacity 0.2
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            opacity: 0.2
+        }).addTo(map);
+
         // Function to generate color based on the weighted mean value
         function getColor(value, min, max) {
             let normalized = value // (value - min) / (max - min); // Normalize to range [0,1]
