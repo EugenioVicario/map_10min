@@ -64,8 +64,7 @@
     <script>
         var isMobile = /Mobi|Android/i.test(navigator.userAgent);
         var map = L.map('map', {
-            center: [0, 0], 
-            zoom: isMobile ? 4 : 3  // Slightly increased zoom for both versions
+            zoom: isMobile ? 4 : 3  // Adjust the zoom level for mobile/PC
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
@@ -96,7 +95,7 @@
             let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
             let maxWeightedMean = weightSum;
 
-            // Store current map view position and zoom level
+            // Store current map view position and zoom level before updating
             var currentCenter = map.getCenter();
             var currentZoom = map.getZoom();
 
@@ -147,18 +146,11 @@
                 }
             }).addTo(map);
 
-            map.on('click', function() {
-                map.eachLayer(function(layer) {
-                    if (layer.getTooltip()) {
-                        layer.unbindTooltip();
-                    }
-                });
-            });
-
+            // Automatically fit bounds to the geojson data
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);
 
-            // Restore the previous center and zoom
+            // After fitting the bounds, reset the view to preserve the center and zoom
             map.setView(currentCenter, currentZoom);
 
             updateLegend(maxWeightedMean);
@@ -187,6 +179,11 @@
 
         fetch('indicatore_02.geojson').then(response => response.json()).then(data => {
             geojsonData = data;
+
+            // Get the center of the GeoJSON data and initialize map to that center
+            var bounds = L.geoJSON(geojsonData).getBounds();
+            map.setView(bounds.getCenter(), isMobile ? 4 : 3);  // Set initial zoom here
+
             updateMap();
         });
     </script>
