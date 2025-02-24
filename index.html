@@ -31,7 +31,7 @@
         var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
 
         // Remove the tile layer for background map, leaving only polygons visible
-        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
