@@ -15,6 +15,15 @@
 </head>
 <body>
     <h2>Weighted Mean Map</h2>
+
+    <!-- Version Selection -->
+    <label>Select Version:
+        <select id="versionSelector" onchange="switchVersion()">
+            <option value="pc">PC Version</option>
+            <option value="mobile">Mobile Version</option>
+        </select>
+    </label>
+
     <div id="controls">
         <label>Weight for Education: <input type="number" id="weightEdu" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Health: <input type="number" id="weightHealth" value="0.5" min="0" max="1" step="0.01"></label>
@@ -24,32 +33,56 @@
         <label>Weight for Parks: <input type="number" id="weightParks" value="0.5" min="0" max="1" step="0.01"></label>
         <button onclick="updateMap()">Apply Weights</button>
     </div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
 
-        // Background map with opacity
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            opacity: 0.2
-        }).addTo(map);
+        var geojsonData, geojsonLayer, legend;
 
-        var geojsonData;
-        var geojsonLayer;
-        var legend;
+        // Auto-detect device type on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                document.getElementById("versionSelector").value = "mobile";
+                applyMobileVersion();
+            } else {
+                applyPCVersion();
+            }
+        });
+
+        function switchVersion() {
+            let version = document.getElementById("versionSelector").value;
+            if (version === "pc") {
+                applyPCVersion();
+            } else {
+                applyMobileVersion();
+            }
+        }
+
+        function applyPCVersion() {
+            document.getElementById("controls").style.display = "block"; // Show all controls
+            map.setView([0, 0], 2); // Standard zoom
+        }
+
+        function applyMobileVersion() {
+            document.getElementById("controls").style.display = "none"; // Hide controls for mobile
+            map.setView([0, 0], 4); // Zoom in for better mobile view
+        }
 
         function getColor(value, max) {
-            let normalized = value ;
+            let normalized = value;
             return normalized > 0.9 ? '#fde725' :
-               normalized > 0.8 ? '#78d151' :
-               normalized > 0.7 ? '#3dbc74' :
-               normalized > 0.6 ? '#1e9b8a' :
-               normalized > 0.5 ? '#25858e' :
-               normalized > 0.4 ? '#2d708e' :
-               normalized > 0.3 ? '#39568c' :
-               normalized > 0.2 ? '#443983' :
-               normalized > 0.1 ? '#48186a' : '#440154';
+                   normalized > 0.8 ? '#78d151' :
+                   normalized > 0.7 ? '#3dbc74' :
+                   normalized > 0.6 ? '#1e9b8a' :
+                   normalized > 0.5 ? '#25858e' :
+                   normalized > 0.4 ? '#2d708e' :
+                   normalized > 0.3 ? '#39568c' :
+                   normalized > 0.2 ? '#443983' :
+                   normalized > 0.1 ? '#48186a' : '#440154';
         }
 
         function updateMap() {
@@ -94,26 +127,22 @@
                     ) / weightSum;
 
                     layer.on('click', function(e) {
-                        // Remove existing tooltips
                         map.eachLayer(function(l) {
                             if (l.getTooltip()) {
                                 l.unbindTooltip();
                             }
                         });
 
-                        // Bind and show the tooltip
                         layer.bindTooltip(
                             `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`,
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
-                        // Fix event propagation
                         L.DomEvent.stopPropagation(e);
                     });
                 }
             }).addTo(map);
 
-            // Remove tooltip when clicking outside polygons
             map.on('click', function() {
                 map.eachLayer(function(layer) {
                     if (layer.getTooltip()) {
@@ -138,11 +167,9 @@
                 var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
                 var colors = ['#440154', '#48186a', '#443983', '#39568c', '#2d708e', '#25858e', '#1e9b8a', '#3dbc74', '#78d151', '#fde725'];
 
-
                 for (var i = 0; i < grades.length; i++) {
-                    div.innerHTML +=
-                        '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
-                        grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '');
+                    div.innerHTML += '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
+                                    grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '');
                 }
 
                 return div;
@@ -151,12 +178,10 @@
             legend.addTo(map);
         }
 
-        fetch('indicatore_02.geojson')
-            .then(response => response.json())
-            .then(data => {
-                geojsonData = data;
-                updateMap();
-            });
+        fetch('indicatore_02.geojson').then(response => response.json()).then(data => {
+            geojsonData = data;
+            updateMap();
+        });
     </script>
 </body>
 </html>
