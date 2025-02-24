@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weighted Mean Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; margin-top: 10px; }
+        #controls { padding: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Weighted Mean Map</h2>
+    <div id="controls">
+        <label>Weight for Education: <input type="number" id="weightEdu" value="1" step="0.1"></label>
+        <label>Weight for Health: <input type="number" id="weightHealth" value="1" step="0.1"></label>
+        <button onclick="updateMap()">Apply Weights</button>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([25, 15], 3);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var geojsonData; // This will store the GeoJSON data
+        var geojsonLayer;
+
+        function getColor(value, min, max) {
+            let normalized = (value - min) / (max - min); // Normalize to range [0,1]
+            return normalized > 0.8 ? '#800026' :
+                   normalized > 0.6 ? '#BD0026' :
+                   normalized > 0.4 ? '#E31A1C' :
+                   normalized > 0.2 ? '#FC4E2A' : '#FFEDA0';
+        }
+
+        function updateMap() {
+            let weightEdu = parseFloat(document.getElementById('weightEdu').value);
+            let weightHealth = parseFloat(document.getElementById('weightHealth').value);
+            let weightSum = weightEdu + weightHealth;
+
+            if (geojsonLayer) map.removeLayer(geojsonLayer);
+
+            // Compute min/max based on the new weight range
+            let minWeightedMean = 0;
+            let maxWeightedMean = weightSum; // Max is now sum of weights
+
+            geojsonLayer = L.geoJSON(geojsonData, {
+                style: function(feature) {
+                    let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
+                    return { fillColor: getColor(weightedMean, minWeightedMean, maxWeightedMean), fillOpacity: 0.7, color: "#000", weight: 1 };
+                },
+                onEachFeature: function(feature, layer) {
+                    let weightedMean = (feature.properties.Education * weightEdu + feature.properties.Health * weightHealth) / weightSum;
+                    layer.bindPopup(`
+                        <b>Region:</b> ${feature.properties.name}<br>
+                        <b>Education Score:</b> ${feature.properties.Education}<br>
+                        <b>Health Score:</b> ${feature.properties.Health}<br>
+                        <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
+                    `);
+                }
+            }).addTo(map);
+        }
+
+        // Load the GeoJSON data
+        fetch('data.geojson')
+            .then(response => response.json())
+            .then(data => {
+                geojsonData = data;
+                updateMap(); // Initial rendering
+            });
+    </script>
+</body>
+</html>
