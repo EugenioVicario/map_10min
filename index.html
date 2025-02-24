@@ -8,6 +8,19 @@
     <style>
         #map { height: 500px; width: 100%; margin-top: 10px; }
         #controls { padding: 10px; }
+        .info.legend { 
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            font-size: 12px;
+        }
+        .info.legend i {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -26,12 +39,6 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
-
-        // Add the background tile layer that highlights water
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CartoDB</a>',
-            maxZoom: 19,
-        }).addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
@@ -109,19 +116,24 @@
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
 
-            // Add the legend
-            var legend = L.control({ position: 'bottomright' });
+            // Update the legend with the new weighted mean range
+            updateLegend(weightSum);
+        }
+
+        // Function to update the legend
+        function updateLegend(weightSum) {
+            var legend = L.control({ position: 'topright' });
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create('div', 'info legend');
                 var grades = [0, 0.2, 0.4, 0.6, 0.8, 1];
                 var labels = [];
 
-                // Generate the legend color boxes
+                // Generate the legend color boxes with values based on weighted sum
                 for (var i = 0; i < grades.length; i++) {
                     labels.push(
-                        '<i style="background:' + getColor(grades[i], minWeightedMean, maxWeightedMean) + '"></i> ' +
-                        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] : '+')
+                        '<i style="background:' + getColor(grades[i] * weightSum, 0, weightSum) + '"></i> ' +
+                        (grades[i] * weightSum).toFixed(2) + (grades[i + 1] ? '&ndash;' + (grades[i + 1] * weightSum).toFixed(2) : '+')
                     );
                 }
 
@@ -129,6 +141,10 @@
                 return div;
             };
 
+            // Remove existing legend if it exists, and add the updated legend
+            if (map.hasLayer(legend)) {
+                map.removeControl(legend);
+            }
             legend.addTo(map);
         }
 
@@ -142,3 +158,4 @@
     </script>
 </body>
 </html>
+
