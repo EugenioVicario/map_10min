@@ -17,7 +17,7 @@
         <label>Weight for Health: <input type="number" id="weightHealth" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Leisure: <input type="number" id="weightLeisure" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Food Retail: <input type="number" id="weightFoodRetail" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Primary Services: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Weight for Primary School: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
         <label>Weight for Parks: <input type="number" id="weightParks" value="0.5" min="0" max="1" step="0.01"></label>
         <button onclick="updateMap()">Apply Weights</button>
     </div>
@@ -27,8 +27,11 @@
     <script>
         var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
 
-        // Remove the tile layer for background map, leaving only polygons visible
-        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // Add the background tile layer that highlights water
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CartoDB</a>',
+            maxZoom: 19,
+        }).addTo(map);
 
         var geojsonData; // This will store the GeoJSON data
         var geojsonLayer;
@@ -89,13 +92,13 @@
                         feature.properties.Parks * weightParks
                     ) / weightSum;
 
-                    layer.bindPopup(`
+                    layer.bindPopup(` 
                         <b>Region:</b> ${feature.properties.name}<br>
                         <b>Education:</b> ${feature.properties.Education}<br>
                         <b>Health:</b> ${feature.properties.Health}<br>
                         <b>Leisure:</b> ${feature.properties.Leisure}<br>
                         <b>Food Retail:</b> ${feature.properties.Food_Retai}<br>
-                        <b>Primary Services:</b> ${feature.properties.Primary_Se}<br>
+                        <b>Primary School:</b> ${feature.properties.Primary_Se}<br>
                         <b>Parks:</b> ${feature.properties.Parks}<br>
                         <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
                     `);
@@ -105,6 +108,28 @@
             // Center the map on the centroid of the dataset
             var bounds = geojsonLayer.getBounds();
             map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
+
+            // Add the legend
+            var legend = L.control({ position: 'bottomright' });
+
+            legend.onAdd = function () {
+                var div = L.DomUtil.create('div', 'info legend');
+                var grades = [0, 0.2, 0.4, 0.6, 0.8, 1];
+                var labels = [];
+
+                // Generate the legend color boxes
+                for (var i = 0; i < grades.length; i++) {
+                    labels.push(
+                        '<i style="background:' + getColor(grades[i], minWeightedMean, maxWeightedMean) + '"></i> ' +
+                        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] : '+')
+                    );
+                }
+
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+
+            legend.addTo(map);
         }
 
         // Load the GeoJSON data
@@ -117,5 +142,3 @@
     </script>
 </body>
 </html>
-
-
