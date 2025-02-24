@@ -131,16 +131,21 @@
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create('div', 'info legend');
-                var grades = [minWeightedMean, minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.2, 
-                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.4, 
-                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.6, 
-                              minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.8, maxWeightedMean];
+                var grades = [
+                    minWeightedMean,
+                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.2,
+                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.4,
+                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.6,
+                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.8,
+                    maxWeightedMean
+                ];
+                var colors = ['#FFEDA0', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
                 var labels = [];
 
                 // Generate the legend color boxes with values based on weighted sum
                 for (var i = 0; i < grades.length - 1; i++) {
                     labels.push(
-                        '<i style="background:' + getColor(grades[i], minWeightedMean, maxWeightedMean) + '"></i> ' +
+                        '<i style="background:' + colors[i] + '"></i> ' +
                         grades[i].toFixed(2) + '&ndash;' + grades[i + 1].toFixed(2)
                     );
                 }
@@ -162,5 +167,6 @@
     </script>
 </body>
 </html>
+
 
 
