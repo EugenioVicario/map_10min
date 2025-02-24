@@ -41,15 +41,15 @@
 
         function getColor(value, max) {
             let normalized = value ;
-            return normalized > 0.9 ? '#800026' :
-                   normalized > 0.8 ? '#BD0026' :
-                   normalized > 0.7 ? '#E31A1C' :
-                   normalized > 0.6 ? '#FC4E2A' :
-                   normalized > 0.5 ? '#FD8D3C' :
-                   normalized > 0.4 ? '#FEB24C' :
-                   normalized > 0.3 ? '#FED976' :
-                   normalized > 0.2 ? '#FFEDA0' :
-                   normalized > 0.1 ? '#FFFFCC' : '#FFFFFF';
+            return normalized > 0.9 ? '#fde725' :
+               normalized > 0.8 ? '#78d151' :
+               normalized > 0.7 ? '#3dbc74' :
+               normalized > 0.6 ? '#1e9b8a' :
+               normalized > 0.5 ? '#25858e' :
+               normalized > 0.4 ? '#2d708e' :
+               normalized > 0.3 ? '#39568c' :
+               normalized > 0.2 ? '#443983' :
+               normalized > 0.1 ? '#48186a' : '#440154';
         }
 
         function updateMap() {
@@ -136,7 +136,8 @@
             legend.onAdd = function () {
                 var div = L.DomUtil.create("div", "info legend");
                 var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-                var colors = ['#FFFFFF', '#FFFFCC', '#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
+                var colors = ['#440154', '#48186a', '#443983', '#39568c', '#2d708e', '#25858e', '#1e9b8a', '#3dbc74', '#78d151', '#fde725'];
+
 
                 for (var i = 0; i < grades.length; i++) {
                     div.innerHTML +=
