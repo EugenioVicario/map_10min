@@ -63,9 +63,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        var map = L.map('map', {
-            zoom: isMobile ? 4 : 10  // Adjust the zoom level for mobile/PC
-        });
+        var map = L.map('map');
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
 
@@ -180,13 +178,15 @@
         fetch('indicatore_02.geojson').then(response => response.json()).then(data => {
             geojsonData = data;
 
-            // Get the center of the GeoJSON data and initialize map to that center
+            // Get the bounds of the GeoJSON data
             var bounds = L.geoJSON(geojsonData).getBounds();
-            map.setView(bounds.getCenter(), isMobile ? 4 : 3);  // Set initial zoom here
+
+            // For PC, set an appropriate zoom level
+            var initialZoom = isMobile ? 4 : 6; // Adjust the zoom level based on device
+            map.setView(bounds.getCenter(), initialZoom);  // Set initial view with appropriate zoom
 
             updateMap();
         });
     </script>
 </body>
 </html>
-
