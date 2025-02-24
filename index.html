@@ -122,6 +122,11 @@
 
         // Function to update the legend
         function updateLegend(weightSum) {
+            // Remove the previous legend before adding a new one
+            if (map._controlCorners["topright"].firstChild) {
+                map.removeControl(map._controlCorners["topright"].firstChild);
+            }
+
             var legend = L.control({ position: 'topright' });
 
             legend.onAdd = function () {
@@ -141,10 +146,6 @@
                 return div;
             };
 
-            // Remove existing legend if it exists, and add the updated legend
-            if (map.hasLayer(legend)) {
-                map.removeControl(legend);
-            }
             legend.addTo(map);
         }
 
@@ -158,4 +159,5 @@
     </script>
 </body>
 </html>
+
 
