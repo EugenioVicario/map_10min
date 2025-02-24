@@ -89,18 +89,21 @@
                     ) / weightSum;
 
                     layer.on('click', function(e) {
+                        // Remove existing tooltips
                         map.eachLayer(function(l) {
                             if (l.getTooltip()) {
                                 l.unbindTooltip();
                             }
                         });
 
+                        // Bind and show the tooltip
                         layer.bindTooltip(
-                            `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`, 
+                            `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`,
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
-                        e.originalEvent.stopPropagation();
+                        // Fix event propagation
+                        L.DomEvent.stopPropagation(e);
                     });
                 }
             }).addTo(map);
