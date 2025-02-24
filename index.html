@@ -45,7 +45,7 @@
 
         // Function to generate color based on the weighted mean value
         function getColor(value, min, max) {
-            let normalized = (value - min) / (max - min); // Normalize to range [0,1]
+            let normalized = value // (value - min) / (max - min); // Normalize to range [0,1]
             return normalized > 0.8 ? '#800026' :
                    normalized > 0.6 ? '#BD0026' :
                    normalized > 0.4 ? '#E31A1C' :
