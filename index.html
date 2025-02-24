@@ -8,19 +8,9 @@
     <style>
         #map { height: 800px; width: 100%; margin-top: 10px; }
         #controls { padding: 10px; }
-        .info.legend { 
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            font-size: 12px;
-        }
-        .info.legend i {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            margin-right: 5px;
-        }
+        .legend { background: white; padding: 10px; line-height: 18px; border-radius: 5px; }
+        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 1; }
+        .custom-tooltip { background: white; border-radius: 4px; padding: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -38,27 +28,25 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([0, 0], 2);  // Default centered on (0,0) to start
+        var map = L.map('map').setView([0, 0], 2);
 
-        var geojsonData; // This will store the GeoJSON data
-        var geojsonLayer;
-
-        // Add a background tile layer (OpenStreetMap) with opacity 0.2
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CartoDB</a>',
+        // Background map with opacity
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             opacity: 0.2
         }).addTo(map);
 
-        // Function to generate color based on the weighted mean value
-        function getColor(value, min, max) {
-            let normalized = value // (value - min) / (max - min); // Normalize to range [0,1]
+        var geojsonData;
+        var geojsonLayer;
+        var legend;
+
+        function getColor(value, max) {
+            let normalized = value ;
             return normalized > 0.8 ? '#800026' :
                    normalized > 0.6 ? '#BD0026' :
                    normalized > 0.4 ? '#E31A1C' :
                    normalized > 0.2 ? '#FC4E2A' : '#FFEDA0';
         }
 
-        // Function to update the map with new weights
         function updateMap() {
             let weightEdu = parseFloat(document.getElementById('weightEdu').value);
             let weightHealth = parseFloat(document.getElementById('weightHealth').value);
@@ -66,18 +54,14 @@
             let weightFoodRetail = parseFloat(document.getElementById('weightFoodRetail').value);
             let weightPrimarySe = parseFloat(document.getElementById('weightPrimarySe').value);
             let weightParks = parseFloat(document.getElementById('weightParks').value);
-
+            
             let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
+            let maxWeightedMean = weightSum;
 
             if (geojsonLayer) map.removeLayer(geojsonLayer);
 
-            // Compute min/max based on the new weight range
-            let minWeightedMean = 0;  // Minimum value is always 0
-            let maxWeightedMean = weightSum; // Maximum is always the sum of all weights
-
             geojsonLayer = L.geoJSON(geojsonData, {
                 style: function(feature) {
-                    // Calculate the weighted mean using all fields
                     let weightedMean = (
                         feature.properties.Education * weightEdu +
                         feature.properties.Health * weightHealth +
@@ -88,9 +72,9 @@
                     ) / weightSum;
 
                     return { 
-                        fillColor: getColor(weightedMean, minWeightedMean, maxWeightedMean),
+                        fillColor: getColor(weightedMean, maxWeightedMean),
                         fillOpacity: 1, 
-                        color: "transparent", // Border color is transparent
+                        color: "transparent", 
                         weight: 0 
                     };
                 },
@@ -104,87 +88,65 @@
                         feature.properties.Parks * weightParks
                     ) / weightSum;
 
-                    // Add a click event to display the weighted mean as a label
                     layer.on('click', function(e) {
-                        // Remove any existing tooltips
                         map.eachLayer(function(l) {
                             if (l.getTooltip()) {
                                 l.unbindTooltip();
                             }
                         });
 
-                        // Bind a new tooltip and open it
                         layer.bindTooltip(
                             `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`, 
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
-                        // Prevent the map click event from closing this tooltip immediately
                         e.originalEvent.stopPropagation();
                     });
                 }
-
-                // Close the tooltip when clicking on the map background
-                map.on('click', function() {
-                    map.eachLayer(function(layer) {
-                        if (layer.getTooltip()) {
-                            layer.unbindTooltip();
-                        }
-                    });
-                });
             }).addTo(map);
 
-            // Center the map on the centroid of the dataset
-            var bounds = geojsonLayer.getBounds();
-            map.fitBounds(bounds);  // Fit map bounds to the GeoJSON data
+            // Remove tooltip when clicking outside polygons
+            map.on('click', function() {
+                map.eachLayer(function(layer) {
+                    if (layer.getTooltip()) {
+                        layer.unbindTooltip();
+                    }
+                });
+            });
 
-            // Update the legend with the new weighted mean range
-            updateLegend(minWeightedMean, maxWeightedMean);
+            var bounds = geojsonLayer.getBounds();
+            map.fitBounds(bounds);
+
+            updateLegend(maxWeightedMean);
         }
 
-        // Function to update the legend
-        function updateLegend(minWeightedMean, maxWeightedMean) {
-            // Remove the previous legend before adding a new one
-            if (map._controlCorners["topright"].firstChild) {
-                map.removeControl(map._controlCorners["topright"].firstChild);
-            }
+        function updateLegend(maxWeightedMean) {
+            if (legend) map.removeControl(legend);
 
-            var legend = L.control({ position: 'topright' });
+            legend = L.control({ position: "bottomright" });
 
             legend.onAdd = function () {
-                var div = L.DomUtil.create('div', 'info legend');
-                var grades = [
-                    minWeightedMean,
-                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.2,
-                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.4,
-                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.6,
-                    minWeightedMean + (maxWeightedMean - minWeightedMean) * 0.8,
-                    maxWeightedMean
-                ];
+                var div = L.DomUtil.create("div", "info legend");
+                var grades = [0, 0.2 , 0.4 , 0.6 , 0.8 ];
                 var colors = ['#FFEDA0', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
-                var labels = [];
 
-                // Generate the legend color boxes with values based on weighted sum
-                for (var i = 0; i < grades.length - 1; i++) {
-                    labels.push(
-                        '<i style="background:' + colors[i] + '"></i> ' +
-                        grades[i].toFixed(2) + '&ndash;' + grades[i + 1].toFixed(2)
-                    );
+                for (var i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
+                        grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '+');
                 }
 
-                div.innerHTML = labels.join('<br>');
                 return div;
             };
 
             legend.addTo(map);
         }
 
-        // Load the GeoJSON data
-        fetch('indicatore_02.geojson')  // Ensure the correct path to your GeoJSON file
+        fetch('indicatore_02.geojson')
             .then(response => response.json())
             .then(data => {
                 geojsonData = data;
-                updateMap(); // Initial rendering
+                updateMap();
             });
     </script>
 </body>
