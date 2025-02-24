@@ -191,7 +191,7 @@
             var bounds = L.geoJSON(geojsonData).getBounds();
 
             // For PC, set an appropriate zoom level
-            var initialZoom = isMobile ? 4 : 14; // Adjust the zoom level based on device
+            var initialZoom = isMobile ? 14 : 14; // Adjust the zoom level based on device
             map.setView(bounds.getCenter(), initialZoom);  // Set initial view with appropriate zoom
 
             updateMap();
