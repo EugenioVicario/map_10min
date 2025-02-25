@@ -46,15 +46,15 @@
     </style>
 </head>
 <body>
-    <h2>Weighted Mean Map</h2>
+    <h2>10-min Map</h2>
 
     <div id="controls">
-        <label>Weight for Education: <input type="number" id="weightEdu" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Health: <input type="number" id="weightHealth" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Leisure: <input type="number" id="weightLeisure" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Food Retail: <input type="number" id="weightFoodRetail" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Primary Services: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
-        <label>Weight for Parks: <input type="number" id="weightParks" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Education: <input type="number" id="weightEdu" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Health: <input type="number" id="weightHealth" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Leisure: <input type="number" id="weightLeisure" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Food Retail: <input type="number" id="weightFoodRetail" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Primary Services: <input type="number" id="weightPrimarySe" value="0.5" min="0" max="1" step="0.01"></label>
+        <label>Parks: <input type="number" id="weightParks" value="0.5" min="0" max="1" step="0.01"></label>
         <button onclick="updateMap()">Apply Weights</button>
     </div>
 
@@ -134,8 +134,21 @@
                             }
                         });
 
+                        let education = feature.properties.Education.toFixed(2);
+                        let health = feature.properties.Health.toFixed(2);
+                        let leisure = feature.properties.Leisure.toFixed(2);
+                        let foodRetail = feature.properties.Food_Retai.toFixed(2);
+                        let primaryServices = feature.properties.Primary_Se.toFixed(2);
+                        let parks = feature.properties.Parks.toFixed(2);
+                        
                         layer.bindTooltip(
-                            `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}`,
+                            `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}
+                            <b>Education:</b> ${education}<br>
+                            <b>Health:</b> ${health}<br>
+                            <b>Leisure:</b> ${leisure}<br>
+                            <b>Food Retail:</b> ${foodRetail}<br>
+                            <b>Primary Services:</b> ${primaryServices}<br>
+                            <b>Parks:</b> ${parks}`, 
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
