@@ -190,7 +190,7 @@
 
                 for (var i = 0; i < grades.length-1; i++) {
                     div.innerHTML += '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
-                                    grades[i].toFixed(2) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '');
+                                    grades[i].toFixed(1) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(2) + '<br>' : '');
                 }
 
                 return div;
