@@ -7,36 +7,27 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <style>
-        #map { 
-            height: 800px; 
-            width: 100%; 
-            margin-top: 10px; 
+        #map { height: 800px; width: 100%; margin-top: 10px; }
+        #controls { padding: 10px; font-family: Arial, sans-serif; }
+        .legend {
+            background: white;
+            padding: 10px;
+            line-height: 18px;
+            border-radius: 5px;
         }
-
-        #controls { padding: 10px; }
-
-        .legend { 
-            background: white; 
-            padding: 10px; 
-            line-height: 18px; 
-            border-radius: 5px; 
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 1;
         }
-
-        .legend i { 
-            width: 18px; 
-            height: 18px; 
-            float: left; 
-            margin-right: 8px; 
-            opacity: 1; 
+        .custom-tooltip {
+            background: white;
+            border-radius: 4px;
+            padding: 5px;
+            font-weight: bold;
         }
-
-        .custom-tooltip { 
-            background: white; 
-            border-radius: 4px; 
-            padding: 5px; 
-            font-weight: bold; 
-        }
-
         @media screen and (max-width: 768px) {
             #map { height: 400px; }
         }
@@ -46,7 +37,7 @@
     <h2 style="font-family: Arial, sans-serif">The interactive 10-minute city - Florence, Italy</h2>
     <h3 style="font-family: Arial, sans-serif">Which service do you value most within a 10-minute walk from home? Assign a weight to each service category and generate your 10-minute accessibility index.</h3>
 
-    <div id="controls" style="font-family: Arial, sans-serif">
+    <div id="controls">
         <label>Education: <input type="number" id="weightEdu" value="1" min="0" step="1" style="width: 50px"></label>
         <label>Health: <input type="number" id="weightHealth" value="1" min="0" step="1" style="width: 50px"></label>
         <label>Leisure: <input type="number" id="weightLeisure" value="1" min="0" step="1" style="width: 50px"></label>
@@ -62,47 +53,22 @@
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
         var isMobile = /Mobi|Android/i.test(navigator.userAgent);
         var map = L.map('map');
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-            opacity: 0.5
-        }).addTo(map);
-
-        L.Control.geocoder({
-            defaultMarkGeocode: false,
-            placeholder: 'Search address...',
-            position: 'topright',
-            geocoder: L.Control.Geocoder.nominatim({
-                geocodingQueryParams: {
-                    countrycodes: 'it',
-                    viewbox: '11.1374,43.8406,11.3528,43.6947',
-                    bounded: 1
-                }
-            })
-        })
-        .on('markgeocode', function(e) {
-            var center = e.geocode.center;
-            map.setView(center, 17);
-        })
-        .addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { opacity: 0.2 }).addTo(map);
 
         var geojsonData, geojsonLayer, legend;
 
-        function getColor(value, max) {
-            let normalized = value;
-            return normalized > 0.9 ? '#fde725' :
-                   normalized > 0.8 ? '#78d151' :
-                   normalized > 0.7 ? '#3dbc74' :
-                   normalized > 0.6 ? '#1e9b8a' :
-                   normalized > 0.5 ? '#25858e' :
-                   normalized > 0.4 ? '#2d708e' :
-                   normalized > 0.3 ? '#39568c' :
-                   normalized > 0.2 ? '#443983' :
-                   normalized > 0.1 ? '#48186a' : '#440154';
+        function getColor(value) {
+            return value > 0.9 ? '#fde725' :
+                   value > 0.8 ? '#78d151' :
+                   value > 0.7 ? '#3dbc74' :
+                   value > 0.6 ? '#1e9b8a' :
+                   value > 0.5 ? '#25858e' :
+                   value > 0.4 ? '#2d708e' :
+                   value > 0.3 ? '#39568c' :
+                   value > 0.2 ? '#443983' :
+                   value > 0.1 ? '#48186a' : '#440154';
         }
 
         function updateMap() {
@@ -114,10 +80,9 @@
             let weightParks = parseFloat(document.getElementById('weightParks').value);
 
             let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
-            let maxWeightedMean = weightSum;
 
-            var currentCenter = map.getCenter();
-            var currentZoom = map.getZoom();
+            let currentCenter = map.getCenter();
+            let currentZoom = map.getZoom();
 
             if (geojsonLayer) map.removeLayer(geojsonLayer);
 
@@ -132,11 +97,11 @@
                         feature.properties.Parks * weightParks
                     ) / weightSum;
 
-                    return { 
-                        fillColor: getColor(weightedMean, maxWeightedMean),
-                        fillOpacity: 1, 
-                        color: "transparent", 
-                        weight: 0 
+                    return {
+                        fillColor: getColor(weightedMean),
+                        fillOpacity: 1,
+                        color: "transparent",
+                        weight: 0
                     };
                 },
                 onEachFeature: function(feature, layer) {
@@ -156,21 +121,14 @@
                             }
                         });
 
-                        let education = feature.properties.Education.toFixed(2);
-                        let health = feature.properties.Health.toFixed(2);
-                        let leisure = feature.properties.Leisure.toFixed(2);
-                        let foodRetail = feature.properties.Food_Retai.toFixed(2);
-                        let primaryServices = feature.properties.Primary_Se.toFixed(2);
-                        let parks = feature.properties.Parks.toFixed(2);
-                        
                         layer.bindTooltip(
                             `<b>Weighted Mean:</b> ${weightedMean.toFixed(2)}<br>
-                            <b>Education:</b> ${education}<br>
-                            <b>Health:</b> ${health}<br>
-                            <b>Leisure:</b> ${leisure}<br>
-                            <b>Food Retail:</b> ${foodRetail}<br>
-                            <b>Primary Services:</b> ${primaryServices}<br>
-                            <b>Parks:</b> ${parks}`, 
+                             <b>Education:</b> ${feature.properties.Education.toFixed(2)}<br>
+                             <b>Health:</b> ${feature.properties.Health.toFixed(2)}<br>
+                             <b>Leisure:</b> ${feature.properties.Leisure.toFixed(2)}<br>
+                             <b>Food Retail:</b> ${feature.properties.Food_Retai.toFixed(2)}<br>
+                             <b>Primary Services:</b> ${feature.properties.Primary_Se.toFixed(2)}<br>
+                             <b>Parks:</b> ${feature.properties.Parks.toFixed(2)}`,
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
@@ -188,38 +146,54 @@
             });
 
             map.setView(currentCenter, currentZoom);
-            updateLegend(maxWeightedMean);
+
+            updateLegend();
         }
 
-        function updateLegend(maxWeightedMean) {
+        function updateLegend() {
             if (legend) map.removeControl(legend);
 
             legend = L.control({ position: "bottomright" });
-
             legend.onAdd = function () {
                 var div = L.DomUtil.create("div", "info legend");
-                var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1];
+                var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
                 var colors = ['#440154', '#48186a', '#443983', '#39568c', '#2d708e', '#25858e', '#1e9b8a', '#3dbc74', '#78d151', '#fde725'];
 
-                for (var i = 0; i < grades.length - 1; i++) {
-                    div.innerHTML += '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
-                                    grades[i].toFixed(1) + ' - ' + grades[i + 1].toFixed(1) + '<br>';
+                for (var i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        `<i style="background:${colors[i]}"></i> ${grades[i].toFixed(1)} - ${(grades[i] + 0.1).toFixed(1)}<br>`;
                 }
 
                 return div;
             };
-
             legend.addTo(map);
         }
 
-        fetch('indicatore_02.geojson').then(response => response.json()).then(data => {
-            geojsonData = data;
-            var bounds = L.geoJSON(geojsonData).getBounds();
-            var initialZoom = isMobile ? 14 : 14;
-            map.setView(bounds.getCenter(), initialZoom);
-            updateMap();
-        });
-    });
+        fetch('indicatore_02.geojson')
+            .then(response => response.json())
+            .then(data => {
+                geojsonData = data;
+                var bounds = L.geoJSON(geojsonData).getBounds();
+                map.setView(bounds.getCenter(), isMobile ? 14 : 14);
+                updateMap();
+            });
+
+        // Geocoder - Florence only
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: 'Search address in Florence',
+            geocoder: L.Control.Geocoder.nominatim({
+                geocodingQueryParams: {
+                    countrycodes: 'IT',
+                    city: 'Firenze'
+                }
+            })
+        })
+        .on('markgeocode', function(e) {
+            map.setView(e.geocode.center, 17);
+        })
+        .addTo(map);
     </script>
 </body>
 </html>
+
