@@ -73,17 +73,18 @@
         }).addTo(map);
 
         L.Control.geocoder({
-            defaultMarkGeocode: false,
-            placeholder: 'Search address...',
-            position: 'topright',
-            geocoder: L.Control.Geocoder.nominatim({
-                geocodingQueryParams: {
-                    countrycodes: 'it',
-                    viewbox: '11.1374,43.8406,11.3528,43.6947', // Firenze bounding box: lng1,lat1,lng2,lat2
-                    bounded: 1
-                }
-            })
-        })
+             defaultMarkGeocode: false,
+             placeholder: 'Search address...',
+             position: 'topright'
+             position: 'topright',
+             geocoder: L.Control.Geocoder.nominatim({
+                 geocodingQueryParams: {
+                     countrycodes: 'it',
+                     viewbox: '11.1374,43.8406,11.3528,43.6947', // Firenze bounding box: lng1,lat1,lng2,lat2
+                     bounded: 1
+                 }
+             })
+         })
         .on('markgeocode', function(e) {
             var center = e.geocode.center;
             map.setView(center, 17);
