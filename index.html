@@ -79,9 +79,6 @@
         })
         .on('markgeocode', function(e) {
             var center = e.geocode.center;
-            L.marker(center).addTo(map)
-                .bindPopup(e.geocode.name)
-                .openPopup();
             map.setView(center, 17);
         })
         .addTo(map);
