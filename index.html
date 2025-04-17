@@ -92,16 +92,17 @@
 
         var geojsonData, geojsonLayer, legend;
 
-        function getColor(value) {
-            return value > 0.9 ? '#fde725' :
-                   value > 0.8 ? '#78d151' :
-                   value > 0.7 ? '#3dbc74' :
-                   value > 0.6 ? '#1e9b8a' :
-                   value > 0.5 ? '#25858e' :
-                   value > 0.4 ? '#2d708e' :
-                   value > 0.3 ? '#39568c' :
-                   value > 0.2 ? '#443983' :
-                   value > 0.1 ? '#48186a' : '#440154';
+        function getColor(value, max) {
+            let normalized = value;
+            return normalized > 0.9 ? '#fde725' :
+                   normalized > 0.8 ? '#78d151' :
+                   normalized > 0.7 ? '#3dbc74' :
+                   normalized > 0.6 ? '#1e9b8a' :
+                   normalized > 0.5 ? '#25858e' :
+                   normalized > 0.4 ? '#2d708e' :
+                   normalized > 0.3 ? '#39568c' :
+                   normalized > 0.2 ? '#443983' :
+                   normalized > 0.1 ? '#48186a' : '#440154';
         }
 
         function updateMap() {
@@ -111,16 +112,19 @@
             let weightFoodRetail = parseFloat(document.getElementById('weightFoodRetail').value);
             let weightPrimarySe = parseFloat(document.getElementById('weightPrimarySe').value);
             let weightParks = parseFloat(document.getElementById('weightParks').value);
+            
             let weightSum = weightEdu + weightHealth + weightLeisure + weightFoodRetail + weightPrimarySe + weightParks;
+            let maxWeightedMean = weightSum;
 
-            let currentCenter = map.getCenter();
-            let currentZoom = map.getZoom();
+            // Store current map view position and zoom level before updating
+            var currentCenter = map.getCenter();
+            var currentZoom = map.getZoom();
 
             if (geojsonLayer) map.removeLayer(geojsonLayer);
 
             geojsonLayer = L.geoJSON(geojsonData, {
                 style: function(feature) {
-                    let mean = (
+                    let weightedMean = (
                         feature.properties.Education * weightEdu +
                         feature.properties.Health * weightHealth +
                         feature.properties.Leisure * weightLeisure +
@@ -129,15 +133,15 @@
                         feature.properties.Parks * weightParks
                     ) / weightSum;
 
-                    return {
-                        fillColor: getColor(mean),
-                        fillOpacity: 1,
-                        color: "transparent",
-                        weight: 0
+                    return { 
+                        fillColor: getColor(weightedMean, maxWeightedMean),
+                        fillOpacity: 1, 
+                        color: "transparent", 
+                        weight: 0 
                     };
                 },
                 onEachFeature: function(feature, layer) {
-                    let mean = (
+                    let weightedMean = (
                         feature.properties.Education * weightEdu +
                         feature.properties.Health * weightHealth +
                         feature.properties.Leisure * weightLeisure +
@@ -148,17 +152,26 @@
 
                     layer.on('click', function(e) {
                         map.eachLayer(function(l) {
-                            if (l.getTooltip()) l.unbindTooltip();
+                            if (l.getTooltip()) {
+                                l.unbindTooltip();
+                            }
                         });
 
+                        let education = feature.properties.Education.toFixed(2);
+                        let health = feature.properties.Health.toFixed(2);
+                        let leisure = feature.properties.Leisure.toFixed(2);
+                        let foodRetail = feature.properties.Food_Retai.toFixed(2);
+                        let primaryServices = feature.properties.Primary_Se.toFixed(2);
+                        let parks = feature.properties.Parks.toFixed(2);
+                        
                         layer.bindTooltip(
-                            `<b>Weighted Mean:</b> ${mean.toFixed(2)}<br>
-                            <b>Education:</b> ${feature.properties.Education.toFixed(2)}<br>
-                            <b>Health:</b> ${feature.properties.Health.toFixed(2)}<br>
-                            <b>Leisure:</b> ${feature.properties.Leisure.toFixed(2)}<br>
-                            <b>Food Retail:</b> ${feature.properties.Food_Retai.toFixed(2)}<br>
-                            <b>Primary Services:</b> ${feature.properties.Primary_Se.toFixed(2)}<br>
-                            <b>Parks:</b> ${feature.properties.Parks.toFixed(2)}`,
+                            <b>Weighted Mean:</b> ${weightedMean.toFixed(2)}<br>
+                            <b>Education:</b> ${education}<br>
+                            <b>Health:</b> ${health}<br>
+                            <b>Leisure:</b> ${leisure}<br>
+                            <b>Food Retail:</b> ${foodRetail}<br>
+                            <b>Primary Services:</b> ${primaryServices}<br>
+                            <b>Parks:</b> ${parks}, 
                             { permanent: true, direction: "center", className: "custom-tooltip" }
                         ).openTooltip();
 
@@ -167,7 +180,8 @@
                 }
             }).addTo(map);
 
-            map.on('click', function() {
+            // Remove tooltip when clicking outside polygons
+            map.on('click', function(e) {
                 map.eachLayer(function(layer) {
                     if (layer.getTooltip()) {
                         layer.unbindTooltip();
@@ -175,23 +189,29 @@
                 });
             });
 
+            // Automatically fit bounds to the geojson data
+            // var bounds = geojsonLayer.getBounds();
+            // map.fitBounds(bounds);
+
+            // After fitting the bounds, reset the view to preserve the center and zoom
             map.setView(currentCenter, currentZoom);
-            updateLegend();
+
+            updateLegend(maxWeightedMean);
         }
 
-        function updateLegend() {
+        function updateLegend(maxWeightedMean) {
             if (legend) map.removeControl(legend);
 
             legend = L.control({ position: "bottomright" });
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create("div", "info legend");
-                var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+                var grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1];
                 var colors = ['#440154', '#48186a', '#443983', '#39568c', '#2d708e', '#25858e', '#1e9b8a', '#3dbc74', '#78d151', '#fde725'];
 
-                for (var i = 0; i < grades.length; i++) {
-                    div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' +
-                        grades[i].toFixed(1) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(1) + '<br>' : '+');
+                for (var i = 0; i < grades.length-1; i++) {
+                    div.innerHTML += '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block;"></i> ' +
+                                    grades[i].toFixed(1) + (grades[i + 1] ? ' - ' + grades[i + 1].toFixed(1) + '<br>' : '');
                 }
 
                 return div;
@@ -200,16 +220,18 @@
             legend.addTo(map);
         }
 
-        fetch('indicatore_02.geojson')
-            .then(response => response.json())
-            .then(data => {
-                geojsonData = data;
-                var bounds = L.geoJSON(geojsonData).getBounds();
-                var initialZoom = isMobile ? 14 : 14;
-                map.setView(bounds.getCenter(), initialZoom);
-                updateMap();
-            });
-    });
+        fetch('indicatore_02.geojson').then(response => response.json()).then(data => {
+            geojsonData = data;
+
+            // Get the bounds of the GeoJSON data
+            var bounds = L.geoJSON(geojsonData).getBounds();
+
+            // For PC, set an appropriate zoom level
+            var initialZoom = isMobile ? 14 : 14; // Adjust the zoom level based on device
+            map.setView(bounds.getCenter(), initialZoom);  // Set initial view with appropriate zoom
+
+            updateMap();
+        });
     </script>
 </body>
 </html>
